@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rfc SYSTEM 'rfc2629.dtd' []>
+<rfc ipr="trust200902" category="std" docName="draft-josefsson-secsh-u2f-00">
+<?rfc toc="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<?rfc private=""?>
+<?rfc topblock="yes"?>
+<?rfc comments="no"?>
+<front>
+<title abbrev="U2F Authentication for SSH">Universal 2nd Factor (U2F) Authentication for Secure Shell (SSH)</title>
+
+<author initials="M." surname="Stapelberg" fullname="Michael Stapelberg">
+<organization></organization>
+<address>
+<postal>
+<street></street>
+<city></city>
+<code></code>
+<country></country>
+<region></region>
+</postal>
+<phone></phone>
+<email>michael+mindrot@stapelberg.de</email>
+<uri></uri>
+</address>
+</author>
+<author initials="S." surname="Bühler" fullname="Stefan Bühler">
+<organization></organization>
+<address>
+<postal>
+<street></street>
+<city></city>
+<code></code>
+<country></country>
+<region></region>
+</postal>
+<phone></phone>
+<email>stbuehler@web.de</email>
+<uri></uri>
+</address>
+</author>
+<date year="2016" month="April" day="19"/>
+
+<area>Internet</area>
+<workgroup></workgroup>
+
+
+<abstract>
+<t>Universal 2nd Factor is an authentication factor intended to strengthen
+other authentication mechanisms.  This document describes how U2F can be
+used to strengthen Secure Shell authentication mechanisms.
+</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="introduction" title="Introduction">
+<t>Universal 2nd Factor (U2F) <xref target="U2F-Overview"/> is an authentication factor
+intended to strengthen other authentication mechanisms.  This document
+describe how U2F can be used to strengthen Secure Shell authentication
+(SSH) <xref target="RFC4251"/> mechanisms.
+</t>
+</section>
+
+<section anchor="terminology" title="Terminology">
+<t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;,
+&quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and
+&quot;OPTIONAL&quot; in this document are to be interpreted as described in
+<xref target="RFC2119"/>.
+</t>
+<t>The reader is assumed to be familiar with the U2F and SSH terminology.
+</t>
+</section>
+
+<section anchor="facetAndAppID" title="U2F facetID and appID">
+<t>The facetID (also known as origin) is build from hostname and port; the
+port is only included if it is not the standard port (22).
+</t>
+
+<figure align="center"><artwork align="center">
+reg-name  = &lt;reg-name, defined in [RFC3986], Section 3.2.2&gt;
+host      = &lt;host, defined in [RFC3986], Section 3.2.2&gt;
+port      = &lt;port, defined in [RFC3986], Section 3.2.3&gt;
+userinfo  = &lt;userinfo, defined in [RFC3986], Section 3.2.3&gt;
+facetId   = "ssh://" userinfo "@" host [ ":" port ]
+</artwork></figure>
+<t>The appID has similar syntax, but also allows wildcards:
+</t>
+
+<figure align="center"><artwork align="center">
+appIdExact = "ssh://" [ userinfo "@" ]      host     [ ":" port ]
+appIdAll   = "ssh://" [ userinfo "@" ] "."  reg-name [ ":" port ]
+appIdSub   = "ssh://" [ userinfo "@" ] "*." reg-name [ ":" port ]
+appId      = appIdExact / appIdAll / appIdSub
+</artwork></figure>
+<t>A <spanx style="verb">facetId</spanx> matches an <spanx style="verb">appId</spanx> if the <spanx style="verb">appId</spanx> doesn't contain <spanx style="verb">userinfo</spanx>
+or the <spanx style="verb">userinfo</spanx> matches exactly, and:
+</t>
+<t>
+<list style="symbols">
+<t>the <spanx style="verb">appId</spanx> is an <spanx style="verb">appIdExact</spanx> and they are equal by simple string
+comparison</t>
+<t>or the <spanx style="verb">appId</spanx> is an <spanx style="verb">appIdAll</spanx>, the ports are equal and <spanx style="verb">reg-name</spanx> is
+either the same as <spanx style="verb">host</spanx> or <spanx style="verb">"." reg-name</spanx> is a suffix of <spanx style="verb">host</spanx>.</t>
+<t>or the <spanx style="verb">appId</spanx> is an <spanx style="verb">appIdSub</spanx>, the ports are equal <spanx style="verb">"." reg-name</spanx> is a
+suffix of <spanx style="verb">host</spanx>.</t>
+</list>
+</t>
+</section>
+
+<section anchor="u2f-authentication-public-key" title="U2F Authentication public key">
+<t>The &quot;ssh-u2f-v2&quot; public key represents the server side registration object
+which will usually be stored in an <spanx style="verb">authorized_keys</spanx> file.
+</t>
+<t>It consists of:
+</t>
+
+<figure align="center"><artwork align="center">
+string    "ssh-u2f-v2"
+string    keyHandle
+string    appId
+string    ec_public_key
+</artwork></figure>
+<t>ec_public_key is the serialized form of an ECDSA key over P-256:
+</t>
+
+<figure align="center"><artwork align="center">
+byte      point_format 0x04 (uncompressed)
+byte[32]  x
+byte[32]  y
+</artwork></figure>
+<t>This is the same format as is used in the raw protocol.
+</t>
+</section>
+
+<section anchor="u2f-authentication-method-u2fregister" title="U2F Authentication Method: &quot;u2f-register&quot;">
+<t>Registration leads to creation of a new public key which needs to be
+stored on the server some other way.  The server usually only provides
+basic sanity checks, and might refuse cooperation.
+</t>
+<t>If an implementation decides to trust a U2F factor on first use the
+authentication method can succeed.  Otherwise it MUST fail, but MUST
+signal successful registration by setting <spanx style="verb">partial success</spanx> to true.
+</t>
+
+<section anchor="exchanged-messages" title="Exchanged messages">
+<t>This section is modeled after the authentication methods described in
+<xref target="RFC4252"/>.
+</t>
+<t>When the client starts the U2F authentication it sends:
+</t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_REGISTER_INIT
+string    user name in ISO-10646 UTF-8 encoding [RFC3629]
+string    service name in US-ASCII
+string    method name "u2f-register"
+string    register appId
+</artwork></figure>
+<t>The server can reject a specific appId or registration in general for a
+specific user by responding with a SSH_MSG_USERAUTH_FAILURE message
+instead (partial success MUST be false in this case).
+</t>
+<t>Otherwise the server MUST reply with:
+</t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_REGISTER_REQUEST
+byte[16]  random value
+string    RegisterRequest (serialized JSON)
+</artwork></figure>
+<t>Where the &quot;RegisterRequest&quot; object is specified in section 4.1.1 of
+<xref target="U2F-JavaScript"/>.  The value for the &quot;appId&quot; (application id) field
+MUST be copied from <spanx style="verb">register appId</spanx> in the SSH_MSG_USERAUTH_REQUEST
+message.  The &quot;challenge&quot; field MUST be the SHA2-256 checksum of the
+concatentation of the <spanx style="verb">random value</spanx> and the session identifier.
+</t>
+<t>The client MUST check the &quot;appId&quot; and the &quot;challenge&quot; field values.
+</t>
+<t>After sending &quot;RegisterRequest&quot; and the locally determined origin
+(facetId) to the U2F Security Key and receiving a response, the client
+sends back the &quot;RegisterResponse&quot; (see section 4.1.2 of
+<xref target="U2F-JavaScript"/>).
+</t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESPONSE
+string    RegisterResponse (serialized JSON)
+</artwork></figure>
+<t>Once the server verified the &quot;RegisterResponse&quot; signed the original
+challenge, it extracts the user’s U2F public key and sends back a public
+key which the user should add to her authorized_keys file.
+</t>
+<t><list style="empty">
+<t>The server SHOULD also check whether the &quot;origin&quot; facetId matches the
+&quot;appId&quot; according to the rules in <xref target="facetAndAppID"/>.
+</t>
+</list></t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESULT
+string    key type
+string    public key
+</artwork></figure>
+<t>Key type will be &quot;ssh-u2f-v2&quot; for now but could be other key types as
+well.  The ssh client doesn't need to worry about the specific key type.
+</t>
+</section>
+</section>
+
+<section anchor="u2f-authentication-method-u2f" title="U2F Authentication Method: &quot;u2f&quot;">
+<t>This section is modeled after the authentication methods described in
+<xref target="RFC4252"/>.
+</t>
+<t><list style="empty">
+<t>Registration leads to creation of a new public key which needs to be
+stored on the server some other way.  The server usually only provides
+basic sanity checks, and might refuse cooperation.
+</t>
+</list></t>
+<t>When the client starts the U2F authentication, it sends:
+</t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_INIT
+string    user name in ISO-10646 UTF-8 encoding [RFC3629]
+string    service name in US-ASCII
+string    method name "u2f"
+string    origin
+</artwork></figure>
+<t>The server replies with:
+</t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_REQUEST
+byte[16]  random value
+uint32    SignRequestsNumber N
+string[N] SignRequests (each as serialized JSON)
+</artwork></figure>
+<t>The server MUST only send &quot;SignRequest&quot;s with an appId matched by
+<spanx style="verb">origin</spanx> according to the rules in <xref target="facetAndAppID"/>.  The list may be
+empty if there is no such public key.
+</t>
+<t>The challenge in each SignRequest MUST be the SHA2-256 checksum of the
+concatentation of the <spanx style="verb">random value</spanx> and the session identifier.
+</t>
+<t>The client MUST ignore any SignRequest if the origin doesn't match the
+appId according to the rules in <xref target="facetAndAppID"/> or the challenge isn't
+the expected value.
+</t>
+<t>The client will try to get a response for one of the requests and
+returns the response with:
+</t>
+
+<figure align="center"><artwork align="center">
+byte      SSH_MSG_USERAUTH_U2F_RESPONSE
+string    SignResponse (serialized JSON)
+</artwork></figure>
+<t>The authentication is successful if the server successfully verifies the
+signature on the &quot;SignResponse&quot; (see section 4.2.2 of
+<xref target="U2F-JavaScript"/>) with a trusted public key.
+</t>
+<t><list style="empty">
+<t>The server SHOULD also check whether the &quot;origin&quot; facetId matches the
+&quot;appId&quot; according to the rules in <xref target="facetAndAppID"/>.
+</t>
+</list></t>
+</section>
+
+<section anchor="registration-possibilities-outside-the-scope-of-this-document" title="Registration possibilities outside the scope of this document">
+<t>The client doesn't actually need the server to create the public key.
+</t>
+<t>By using the registration protocol defined in this document a server
+might perform additional checks.
+</t>
+<t>A server might store registrations server side too (and might also
+verify the Attestation certificate against a chosen set).  When the user
+then tries to &quot;activate&quot; the registration through some other channel
+(web interface, user support, ...), the server can check whether the
+registration was done using the protocol defined in this document.
+</t>
+<t>Also Trust on First Registration can be implemented on the server when
+users are migrated to Two Factor Authentication.
+</t>
+</section>
+
+<section anchor="future-work" title="Future work">
+<t>The userauth types &quot;u2f-register&quot; and &quot;u2f&quot; are not bound to a specific
+key type.  It is recommended the key types used for U2F always start
+with &quot;ssh-u2f-&quot; to distinguish them from other key types, so they can be
+stored together with them in an &quot;authorized_keys&quot; file.
+</t>
+</section>
+
+<section anchor="acknowledgments" title="Acknowledgments">
+<t>TBA
+</t>
+</section>
+
+<section anchor="security-considerations" title="Security Considerations">
+<t>TBA
+</t>
+</section>
+
+<section anchor="iana-considerations" title="IANA Considerations">
+
+<section anchor="authentication-method-names-and-messages" title="Authentication Method Names and Messages">
+<t>The userauth types &quot;u2f-register&quot; and &quot;u2f&quot; are used for this
+authentication method.
+</t>
+<t>The following method-specific constants are used with the authentication
+method &quot;u2f-register&quot;:
+</t>
+
+<figure align="center"><artwork align="center">
+SSH_MSG_USERAUTH_U2F_REGISTER_INIT      60
+SSH_MSG_USERAUTH_U2F_REGISTER_REQUEST   61
+SSH_MSG_USERAUTH_U2F_REGISTER_RESPONSE  62
+SSH_MSG_USERAUTH_U2F_REGISTER_RESULT    63
+</artwork></figure>
+<t>The following method-specific constants are used with the authentication
+method &quot;u2f&quot;:
+</t>
+
+<figure align="center"><artwork align="center">
+SSH_MSG_USERAUTH_U2F_INIT               60
+SSH_MSG_USERAUTH_U2F_REQUEST            61
+SSH_MSG_USERAUTH_U2F_RESPONSE           62
+</artwork></figure>
+</section>
+
+<section anchor="public-key-algorithm-names" title="Public Key Algorithm Names">
+<t>&quot;ssh-u2f-*&quot; public key algorithm names are to be reserved for the use
+with U2f, although they are not used in any of the traditional places
+where key algorithm names are used.
+</t>
+<t>That way U2F public keys can be stored with other keys in an
+&quot;authorized_keys&quot; file.
+</t>
+</section>
+</section>
+
+</middle>
+<back>
+<references title="Normative References">
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4252.xml"?>
+<reference anchor="U2F-JavaScript" target="http://fidoalliance.org/specs/fido-u2f-v1.0-ps-20141009/fido-u2f-javascript-api-ps-20141009.html">
+    <front>
+        <title>FIDO U2F Javascript API</title>
+        <author initials="D." surname="Balfanz" fullname="Dirk Balfanz"/>
+        <author initials="A." surname="Birgisson" fullname="Arnar Birgisson"/>
+        <author initials="J." surname="Lang" fullname="Juan Lang"/>
+        <date month="October" year="2014" />
+    </front>
+</reference>
+</references>
+<references title="Informative References">
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4251.xml"?>
+<reference anchor="U2F-Overview" target="http://fidoalliance.org/specs/fido-u2f-v1.0-ps-20141009/fido-u2f-overview-ps-20141009.html">
+    <front>
+        <title>Universal 2nd Factor (U2F) Overview</title>
+        <author initials="S." surname="Srinivas" fullname="Sampath Srinivas"/>
+        <author initials="D." surname="Balfanz" fullname="Dirk Balfanz"/>
+        <author initials="E." surname="Tiffany" fullname="Eric Tiffany"/>
+        <date month="October" year="2014" />
+    </front>
+</reference>
+</references>
+
+</back>
+</rfc>
