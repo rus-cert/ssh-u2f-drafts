@@ -42,7 +42,7 @@
 <uri></uri>
 </address>
 </author>
-<date year="2016" month="April" day="19"/>
+<date year="2016" month="April" day="20"/>
 
 <area>Internet</area>
 <workgroup></workgroup>
@@ -113,20 +113,28 @@ suffix of <spanx style="verb">host</spanx>.</t>
 </t>
 </section>
 
-<section anchor="u2f-authentication-public-key" title="U2F Authentication public key">
-<t>The &quot;ssh-u2f-v2&quot; public key represents the server side registration object
+<section anchor="key" title="U2F Authentication public key">
+<t>The &quot;ssh-u2f&quot; public key represents the server side registration object
 which will usually be stored in an <spanx style="verb">authorized_keys</spanx> file.
 </t>
 <t>It consists of:
 </t>
 
 <figure align="center"><artwork align="center">
-string    "ssh-u2f-v2"
+string    "ssh-u2f"
 string    keyHandle
 string    appId
-string    ec_public_key
+string    u2f_version
+string    public key blob (contents u2f_version specific)
 </artwork></figure>
-<t>ec_public_key is the serialized form of an ECDSA key over P-256:
+<t>TBD: Define IANA registry for U2F version names. Each version needs to
+define the contents of the public key blob.
+</t>
+</section>
+
+<section anchor="u2f-version-u2fv2" title="U2F version &quot;U2F_V2&quot;">
+<t>The content of the public key blob encodes an ECDSA key over P-256 as an
+uncompressed x,y-representation of a curve point and is 65 bytes long:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -172,20 +180,31 @@ instead (partial success MUST be false in this case).
 <figure align="center"><artwork align="center">
 byte      SSH_MSG_USERAUTH_U2F_REGISTER_REQUEST
 byte[16]  random value
-string    RegisterRequest (serialized JSON)
+uint32    RegisterRequestsNumber N
+string[N] RegisterRequests (each as serialized JSON)
 </artwork></figure>
-<t>Where the &quot;RegisterRequest&quot; object is specified in section 4.1.1 of
-<xref target="U2F-JavaScript"/>.  The value for the &quot;appId&quot; (application id) field
-MUST be copied from <spanx style="verb">register appId</spanx> in the SSH_MSG_USERAUTH_REQUEST
-message.  The &quot;challenge&quot; field MUST be the SHA2-256 checksum of the
-concatentation of the <spanx style="verb">random value</spanx> and the session identifier.
+<t>Each entry in <spanx style="verb">RegisterRequests</spanx> represents a &quot;RegisterRequest&quot; object
+as specified in section 4.1.1 of <xref target="U2F-JavaScript"/>.  The value for the
+&quot;appId&quot; (application id) field MUST be copied from <spanx style="verb">register appId</spanx> in
+the SSH_MSG_USERAUTH_REQUEST message.  The &quot;challenge&quot; field MUST be the
+SHA2-256 checksum of the concatentation of the <spanx style="verb">random value</spanx> and the
+session identifier.
 </t>
 <t>The client MUST check the &quot;appId&quot; and the &quot;challenge&quot; field values.
 </t>
-<t>After sending &quot;RegisterRequest&quot; and the locally determined origin
-(facetId) to the U2F Security Key and receiving a response, the client
-sends back the &quot;RegisterResponse&quot; (see section 4.1.2 of
-<xref target="U2F-JavaScript"/>).
+<t>A server can send multiple &quot;RegisterRequest&quot; objects to support
+different U2F protocol versions.
+</t>
+<t>The client sends a &quot;RegisterRequest&quot; and the locally determined origin
+(facetId) to U2F tokens.  The client can pick any order of requests to
+try, but it can send only one response.
+</t>
+<t>If the client cannot (or doesn't want to) respond to any of the register
+requests it MUST disconnect the connection with
+<spanx style="verb">SSH_DISCONNECT_AUTH_CANCELLED_BY_USER</spanx>.
+</t>
+<t>Otherwise it sends the &quot;RegisterResponse&quot; (see section 4.1.2 of
+<xref target="U2F-JavaScript"/>):
 </t>
 
 <figure align="center"><artwork align="center">
@@ -194,7 +213,8 @@ string    RegisterResponse (serialized JSON)
 </artwork></figure>
 <t>Once the server verified the &quot;RegisterResponse&quot; signed the original
 challenge, it extracts the user’s U2F public key and sends back a public
-key which the user should add to her authorized_keys file.
+key which the user should add to her authorized_keys file on the server
+via other means.
 </t>
 <t><list style="empty">
 <t>The server SHOULD also check whether the &quot;origin&quot; facetId matches the
@@ -204,11 +224,13 @@ key which the user should add to her authorized_keys file.
 
 <figure align="center"><artwork align="center">
 byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESULT
-string    key type
+string    key type "ssh-u2f"
 string    public key
 </artwork></figure>
-<t>Key type will be &quot;ssh-u2f-v2&quot; for now but could be other key types as
-well.  The ssh client doesn't need to worry about the specific key type.
+<t>Key type MUST be &quot;ssh-u2f&quot;.
+</t>
+<t>The server MUST send a SSH_MSG_USERAUTH_SUCCESS or
+SSH_MSG_USERAUTH_FAILURE to finish the registration.
 </t>
 </section>
 </section>
@@ -289,14 +311,6 @@ users are migrated to Two Factor Authentication.
 </t>
 </section>
 
-<section anchor="future-work" title="Future work">
-<t>The userauth types &quot;u2f-register&quot; and &quot;u2f&quot; are not bound to a specific
-key type.  It is recommended the key types used for U2F always start
-with &quot;ssh-u2f-&quot; to distinguish them from other key types, so they can be
-stored together with them in an &quot;authorized_keys&quot; file.
-</t>
-</section>
-
 <section anchor="acknowledgments" title="Acknowledgments">
 <t>TBA
 </t>
@@ -334,13 +348,9 @@ SSH_MSG_USERAUTH_U2F_RESPONSE           62
 </artwork></figure>
 </section>
 
-<section anchor="public-key-algorithm-names" title="Public Key Algorithm Names">
-<t>&quot;ssh-u2f-*&quot; public key algorithm names are to be reserved for the use
-with U2f, although they are not used in any of the traditional places
-where key algorithm names are used.
-</t>
-<t>That way U2F public keys can be stored with other keys in an
-&quot;authorized_keys&quot; file.
+<section anchor="public-key-algorithm-name" title="Public Key Algorithm Name">
+<t>The &quot;ssh-u2f&quot; public key algorithm is used for the key type described in
+section #key.
 </t>
 </section>
 </section>

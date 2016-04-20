@@ -75,21 +75,28 @@ or the `userinfo` matches exactly, and:
 - or the `appId` is an `appIdSub`, the ports are equal `"." reg-name` is a
   suffix of `host`.
 
-# U2F Authentication public key
+# U2F Authentication public key {#key}
 
-The "ssh-u2f-v2" public key represents the server side registration object
+The "ssh-u2f" public key represents the server side registration object
 which will usually be stored in an `authorized_keys` file.
 
 It consists of:
 
 F> ~~~artwork
-F> string    "ssh-u2f-v2"
+F> string    "ssh-u2f"
 F> string    keyHandle
 F> string    appId
-F> string    ec_public_key
+F> string    u2f_version
+F> string    public key blob (contents u2f_version specific)
 F> ~~~
 
-ec_public_key is the serialized form of an ECDSA key over P-256:
+TBD: Define IANA registry for U2F version names. Each version needs to
+define the contents of the public key blob.
+
+# U2F version "U2F_V2"
+
+The content of the public key blob encodes an ECDSA key over P-256 as an
+uncompressed x,y-representation of a curve point and is 65 bytes long:
 
 F> ~~~artwork
 F> byte      point_format 0x04 (uncompressed)
@@ -133,21 +140,32 @@ Otherwise the server MUST reply with:
 F> ~~~artwork
 F> byte      SSH_MSG_USERAUTH_U2F_REGISTER_REQUEST
 F> byte[16]  random value
-F> string    RegisterRequest (serialized JSON)
+F> uint32    RegisterRequestsNumber N
+F> string[N] RegisterRequests (each as serialized JSON)
 F> ~~~
 
-Where the "RegisterRequest" object is specified in section 4.1.1 of
-[@!U2F-JavaScript].  The value for the "appId" (application id) field
-MUST be copied from `register appId` in the SSH_MSG_USERAUTH_REQUEST
-message.  The "challenge" field MUST be the SHA2-256 checksum of the
-concatentation of the `random value` and the session identifier.
+Each entry in `RegisterRequests` represents a "RegisterRequest" object
+as specified in section 4.1.1 of [@!U2F-JavaScript].  The value for the
+"appId" (application id) field MUST be copied from `register appId` in
+the SSH_MSG_USERAUTH_REQUEST message.  The "challenge" field MUST be the
+SHA2-256 checksum of the concatentation of the `random value` and the
+session identifier.
 
 The client MUST check the "appId" and the "challenge" field values.
 
-After sending "RegisterRequest" and the locally determined origin
-(facetId) to the U2F Security Key and receiving a response, the client
-sends back the "RegisterResponse" (see section 4.1.2 of
-[@!U2F-JavaScript]).
+A server can send multiple "RegisterRequest" objects to support
+different U2F protocol versions.
+
+The client sends a "RegisterRequest" and the locally determined origin
+(facetId) to U2F tokens.  The client can pick any order of requests to
+try, but it can send only one response.
+
+If the client cannot (or doesn't want to) respond to any of the register
+requests it MUST disconnect the connection with
+`SSH_DISCONNECT_AUTH_CANCELLED_BY_USER`.
+
+Otherwise it sends the "RegisterResponse" (see section 4.1.2 of
+[@!U2F-JavaScript]):
 
 F> ~~~artwork
 F> byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESPONSE
@@ -156,19 +174,22 @@ F> ~~~
 
 Once the server verified the "RegisterResponse" signed the original
 challenge, it extracts the user’s U2F public key and sends back a public
-key which the user should add to her authorized_keys file.
+key which the user should add to her authorized_keys file on the server
+via other means.
 
 A> The server SHOULD also check whether the "origin" facetId matches the
 A> "appId" according to the rules in (#facetAndAppID).
 
 F> ~~~artwork
 F> byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESULT
-F> string    key type
+F> string    key type "ssh-u2f"
 F> string    public key
 F> ~~~
 
-Key type will be "ssh-u2f-v2" for now but could be other key types as
-well.  The ssh client doesn't need to worry about the specific key type.
+Key type MUST be "ssh-u2f".
+
+The server MUST send a SSH_MSG_USERAUTH_SUCCESS or
+SSH_MSG_USERAUTH_FAILURE to finish the registration.
 
 # U2F Authentication Method: "u2f"
 
@@ -240,13 +261,6 @@ registration was done using the protocol defined in this document.
 Also Trust on First Registration can be implemented on the server when
 users are migrated to Two Factor Authentication.
 
-# Future work
-
-The userauth types "u2f-register" and "u2f" are not bound to a specific
-key type.  It is recommended the key types used for U2F always start
-with "ssh-u2f-" to distinguish them from other key types, so they can be
-stored together with them in an "authorized_keys" file.
-
 # Acknowledgments
 
 TBA
@@ -281,14 +295,10 @@ F> SSH_MSG_USERAUTH_U2F_REQUEST            61
 F> SSH_MSG_USERAUTH_U2F_RESPONSE           62
 F> ~~~
 
-## Public Key Algorithm Names
+## Public Key Algorithm Name
 
-"ssh-u2f-*" public key algorithm names are to be reserved for the use
-with U2f, although they are not used in any of the traditional places
-where key algorithm names are used.
-
-That way U2F public keys can be stored with other keys in an
-"authorized_keys" file.
+The "ssh-u2f" public key algorithm is used for the key type described in
+section #key.
 
 <reference anchor="U2F-JavaScript" target="http://fidoalliance.org/specs/fido-u2f-v1.0-ps-20141009/fido-u2f-javascript-api-ps-20141009.html">
     <front>

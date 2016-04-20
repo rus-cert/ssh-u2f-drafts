@@ -378,16 +378,16 @@
 <link href="#rfc.section.2" rel="Chapter" title="2 Terminology"/>
 <link href="#rfc.section.3" rel="Chapter" title="3 U2F facetID and appID"/>
 <link href="#rfc.section.4" rel="Chapter" title="4 U2F Authentication public key"/>
-<link href="#rfc.section.5" rel="Chapter" title="5 U2F Authentication Method: &quot;u2f-register&quot;"/>
-<link href="#rfc.section.5.1" rel="Chapter" title="5.1 Exchanged messages"/>
-<link href="#rfc.section.6" rel="Chapter" title="6 U2F Authentication Method: &quot;u2f&quot;"/>
-<link href="#rfc.section.7" rel="Chapter" title="7 Registration possibilities outside the scope of this document"/>
-<link href="#rfc.section.8" rel="Chapter" title="8 Future work"/>
+<link href="#rfc.section.5" rel="Chapter" title="5 U2F version &quot;U2F_V2&quot;"/>
+<link href="#rfc.section.6" rel="Chapter" title="6 U2F Authentication Method: &quot;u2f-register&quot;"/>
+<link href="#rfc.section.6.1" rel="Chapter" title="6.1 Exchanged messages"/>
+<link href="#rfc.section.7" rel="Chapter" title="7 U2F Authentication Method: &quot;u2f&quot;"/>
+<link href="#rfc.section.8" rel="Chapter" title="8 Registration possibilities outside the scope of this document"/>
 <link href="#rfc.section.9" rel="Chapter" title="9 Acknowledgments"/>
 <link href="#rfc.section.10" rel="Chapter" title="10 Security Considerations"/>
 <link href="#rfc.section.11" rel="Chapter" title="11 IANA Considerations"/>
 <link href="#rfc.section.11.1" rel="Chapter" title="11.1 Authentication Method Names and Messages"/>
-<link href="#rfc.section.11.2" rel="Chapter" title="11.2 Public Key Algorithm Names"/>
+<link href="#rfc.section.11.2" rel="Chapter" title="11.2 Public Key Algorithm Name"/>
 <link href="#rfc.references" rel="Chapter" title="12 References"/>
 <link href="#rfc.references.1" rel="Chapter" title="12.1 Normative References"/>
 <link href="#rfc.references.2" rel="Chapter" title="12.2 Informative References"/>
@@ -399,7 +399,7 @@
 
   <meta name="dct.creator" content="Stapelberg, M. and S. B&#252;hler" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-josefsson-secsh-u2f-00" />
-  <meta name="dct.issued" scheme="ISO8601" content="2016-4-19" />
+  <meta name="dct.issued" scheme="ISO8601" content="2016-4-20" />
   <meta name="dct.abstract" content="Universal 2nd Factor is an authentication factor intended to strengthen other authentication mechanisms.  This document describes how U2F can be used to strengthen Secure Shell authentication mechanisms.  " />
   <meta name="description" content="Universal 2nd Factor is an authentication factor intended to strengthen other authentication mechanisms.  This document describes how U2F can be used to strengthen Secure Shell authentication mechanisms.  " />
 
@@ -423,8 +423,8 @@
   <td class="right">S. B&#252;hler</td>
 </tr>
 <tr>
-  <td class="left">Expires: October 21, 2016</td>
-  <td class="right">April 19, 2016</td>
+  <td class="left">Expires: October 22, 2016</td>
+  <td class="right">April 20, 2016</td>
 </tr>
 
     	
@@ -444,7 +444,7 @@
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on October 21, 2016.</p>
+<p>This Internet-Draft will expire on October 22, 2016.</p>
 <h1 id="rfc.copyrightnotice">
   <a href="#rfc.copyrightnotice">Copyright Notice</a>
 </h1>
@@ -460,16 +460,16 @@
 <li>2.   <a href="#rfc.section.2">Terminology</a></li>
 <li>3.   <a href="#rfc.section.3">U2F facetID and appID</a></li>
 <li>4.   <a href="#rfc.section.4">U2F Authentication public key</a></li>
-<li>5.   <a href="#rfc.section.5">U2F Authentication Method: "u2f-register"</a></li>
-<ul><li>5.1.   <a href="#rfc.section.5.1">Exchanged messages</a></li>
-</ul><li>6.   <a href="#rfc.section.6">U2F Authentication Method: "u2f"</a></li>
-<li>7.   <a href="#rfc.section.7">Registration possibilities outside the scope of this document</a></li>
-<li>8.   <a href="#rfc.section.8">Future work</a></li>
+<li>5.   <a href="#rfc.section.5">U2F version "U2F_V2"</a></li>
+<li>6.   <a href="#rfc.section.6">U2F Authentication Method: "u2f-register"</a></li>
+<ul><li>6.1.   <a href="#rfc.section.6.1">Exchanged messages</a></li>
+</ul><li>7.   <a href="#rfc.section.7">U2F Authentication Method: "u2f"</a></li>
+<li>8.   <a href="#rfc.section.8">Registration possibilities outside the scope of this document</a></li>
 <li>9.   <a href="#rfc.section.9">Acknowledgments</a></li>
 <li>10.   <a href="#rfc.section.10">Security Considerations</a></li>
 <li>11.   <a href="#rfc.section.11">IANA Considerations</a></li>
 <ul><li>11.1.   <a href="#rfc.section.11.1">Authentication Method Names and Messages</a></li>
-<li>11.2.   <a href="#rfc.section.11.2">Public Key Algorithm Names</a></li>
+<li>11.2.   <a href="#rfc.section.11.2">Public Key Algorithm Name</a></li>
 </ul><li>12.   <a href="#rfc.references">References</a></li>
 <ul><li>12.1.   <a href="#rfc.references.1">Normative References</a></li>
 <li>12.2.   <a href="#rfc.references.2">Informative References</a></li>
@@ -509,28 +509,31 @@ appId      = appIdExact / appIdAll / appIdSub
 </ul>
 
 <p> </p>
-<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#u2f-authentication-public-key" id="u2f-authentication-public-key">U2F Authentication public key</a></h1>
-<p id="rfc.section.4.p.1">The "ssh-u2f-v2" public key represents the server side registration object which will usually be stored in an <samp>authorized_keys</samp> file.  </p>
+<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#key" id="key">U2F Authentication public key</a></h1>
+<p id="rfc.section.4.p.1">The "ssh-u2f" public key represents the server side registration object which will usually be stored in an <samp>authorized_keys</samp> file.  </p>
 <p id="rfc.section.4.p.2">It consists of: </p>
 <pre>
-string    "ssh-u2f-v2"
+string    "ssh-u2f"
 string    keyHandle
 string    appId
-string    ec_public_key
+string    u2f_version
+string    public key blob (contents u2f_version specific)
 </pre>
-<p id="rfc.section.4.p.3">ec_public_key is the serialized form of an ECDSA key over P-256: </p>
+<p id="rfc.section.4.p.3">TBD: Define IANA registry for U2F version names. Each version needs to define the contents of the public key blob.  </p>
+<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#u2f-version-u2fv2" id="u2f-version-u2fv2">U2F version "U2F_V2"</a></h1>
+<p id="rfc.section.5.p.1">The content of the public key blob encodes an ECDSA key over P-256 as an uncompressed x,y-representation of a curve point and is 65 bytes long: </p>
 <pre>
 byte      point_format 0x04 (uncompressed)
 byte[32]  x
 byte[32]  y
 </pre>
-<p id="rfc.section.4.p.4">This is the same format as is used in the raw protocol.  </p>
-<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#u2f-authentication-method-u2fregister" id="u2f-authentication-method-u2fregister">U2F Authentication Method: "u2f-register"</a></h1>
-<p id="rfc.section.5.p.1">Registration leads to creation of a new public key which needs to be stored on the server some other way.  The server usually only provides basic sanity checks, and might refuse cooperation.  </p>
-<p id="rfc.section.5.p.2">If an implementation decides to trust a U2F factor on first use the authentication method can succeed.  Otherwise it MUST fail, but MUST signal successful registration by setting <samp>partial success</samp> to true.  </p>
-<h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#exchanged-messages" id="exchanged-messages">Exchanged messages</a></h1>
-<p id="rfc.section.5.1.p.1">This section is modeled after the authentication methods described in <a href="#RFC4252">[RFC4252]</a>.  </p>
-<p id="rfc.section.5.1.p.2">When the client starts the U2F authentication it sends: </p>
+<p id="rfc.section.5.p.2">This is the same format as is used in the raw protocol.  </p>
+<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#u2f-authentication-method-u2fregister" id="u2f-authentication-method-u2fregister">U2F Authentication Method: "u2f-register"</a></h1>
+<p id="rfc.section.6.p.1">Registration leads to creation of a new public key which needs to be stored on the server some other way.  The server usually only provides basic sanity checks, and might refuse cooperation.  </p>
+<p id="rfc.section.6.p.2">If an implementation decides to trust a U2F factor on first use the authentication method can succeed.  Otherwise it MUST fail, but MUST signal successful registration by setting <samp>partial success</samp> to true.  </p>
+<h1 id="rfc.section.6.1"><a href="#rfc.section.6.1">6.1.</a> <a href="#exchanged-messages" id="exchanged-messages">Exchanged messages</a></h1>
+<p id="rfc.section.6.1.p.1">This section is modeled after the authentication methods described in <a href="#RFC4252">[RFC4252]</a>.  </p>
+<p id="rfc.section.6.1.p.2">When the client starts the U2F authentication it sends: </p>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_REGISTER_INIT
 string    user name in ISO-10646 UTF-8 encoding [RFC3629]
@@ -538,21 +541,25 @@ string    service name in US-ASCII
 string    method name "u2f-register"
 string    register appId
 </pre>
-<p id="rfc.section.5.1.p.3">The server can reject a specific appId or registration in general for a specific user by responding with a SSH_MSG_USERAUTH_FAILURE message instead (partial success MUST be false in this case).  </p>
-<p id="rfc.section.5.1.p.4">Otherwise the server MUST reply with: </p>
+<p id="rfc.section.6.1.p.3">The server can reject a specific appId or registration in general for a specific user by responding with a SSH_MSG_USERAUTH_FAILURE message instead (partial success MUST be false in this case).  </p>
+<p id="rfc.section.6.1.p.4">Otherwise the server MUST reply with: </p>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_REGISTER_REQUEST
 byte[16]  random value
-string    RegisterRequest (serialized JSON)
+uint32    RegisterRequestsNumber N
+string[N] RegisterRequests (each as serialized JSON)
 </pre>
-<p id="rfc.section.5.1.p.5">Where the "RegisterRequest" object is specified in section 4.1.1 of <a href="#U2F-JavaScript">[U2F-JavaScript]</a>.  The value for the "appId" (application id) field MUST be copied from <samp>register appId</samp> in the SSH_MSG_USERAUTH_REQUEST message.  The "challenge" field MUST be the SHA2-256 checksum of the concatentation of the <samp>random value</samp> and the session identifier.  </p>
-<p id="rfc.section.5.1.p.6">The client MUST check the "appId" and the "challenge" field values.  </p>
-<p id="rfc.section.5.1.p.7">After sending "RegisterRequest" and the locally determined origin (facetId) to the U2F Security Key and receiving a response, the client sends back the "RegisterResponse" (see section 4.1.2 of <a href="#U2F-JavaScript">[U2F-JavaScript]</a>).  </p>
+<p id="rfc.section.6.1.p.5">Each entry in <samp>RegisterRequests</samp> represents a "RegisterRequest" object as specified in section 4.1.1 of <a href="#U2F-JavaScript">[U2F-JavaScript]</a>.  The value for the "appId" (application id) field MUST be copied from <samp>register appId</samp> in the SSH_MSG_USERAUTH_REQUEST message.  The "challenge" field MUST be the SHA2-256 checksum of the concatentation of the <samp>random value</samp> and the session identifier.  </p>
+<p id="rfc.section.6.1.p.6">The client MUST check the "appId" and the "challenge" field values.  </p>
+<p id="rfc.section.6.1.p.7">A server can send multiple "RegisterRequest" objects to support different U2F protocol versions.  </p>
+<p id="rfc.section.6.1.p.8">The client sends a "RegisterRequest" and the locally determined origin (facetId) to U2F tokens.  The client can pick any order of requests to try, but it can send only one response.  </p>
+<p id="rfc.section.6.1.p.9">If the client cannot (or doesn't want to) respond to any of the register requests it MUST disconnect the connection with <samp>SSH_DISCONNECT_AUTH_CANCELLED_BY_USER</samp>.  </p>
+<p id="rfc.section.6.1.p.10">Otherwise it sends the "RegisterResponse" (see section 4.1.2 of <a href="#U2F-JavaScript">[U2F-JavaScript]</a>): </p>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESPONSE
 string    RegisterResponse (serialized JSON)
 </pre>
-<p id="rfc.section.5.1.p.8">Once the server verified the "RegisterResponse" signed the original challenge, it extracts the user&#8217;s U2F public key and sends back a public key which the user should add to her authorized_keys file.  </p>
+<p id="rfc.section.6.1.p.11">Once the server verified the "RegisterResponse" signed the original challenge, it extracts the user&#8217;s U2F public key and sends back a public key which the user should add to her authorized_keys file on the server via other means.  </p>
 <p/>
 
 <ul class="empty">
@@ -560,18 +567,19 @@ string    RegisterResponse (serialized JSON)
 </ul>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_REGISTER_RESULT
-string    key type
+string    key type "ssh-u2f"
 string    public key
 </pre>
-<p id="rfc.section.5.1.p.10">Key type will be "ssh-u2f-v2" for now but could be other key types as well.  The ssh client doesn't need to worry about the specific key type.  </p>
-<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#u2f-authentication-method-u2f" id="u2f-authentication-method-u2f">U2F Authentication Method: "u2f"</a></h1>
-<p id="rfc.section.6.p.1">This section is modeled after the authentication methods described in <a href="#RFC4252">[RFC4252]</a>.  </p>
+<p id="rfc.section.6.1.p.13">Key type MUST be "ssh-u2f".  </p>
+<p id="rfc.section.6.1.p.14">The server MUST send a SSH_MSG_USERAUTH_SUCCESS or SSH_MSG_USERAUTH_FAILURE to finish the registration.  </p>
+<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#u2f-authentication-method-u2f" id="u2f-authentication-method-u2f">U2F Authentication Method: "u2f"</a></h1>
+<p id="rfc.section.7.p.1">This section is modeled after the authentication methods described in <a href="#RFC4252">[RFC4252]</a>.  </p>
 <p/>
 
 <ul class="empty">
   <li>Registration leads to creation of a new public key which needs to be stored on the server some other way.  The server usually only provides basic sanity checks, and might refuse cooperation.  </li>
 </ul>
-<p id="rfc.section.6.p.3">When the client starts the U2F authentication, it sends: </p>
+<p id="rfc.section.7.p.3">When the client starts the U2F authentication, it sends: </p>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_INIT
 string    user name in ISO-10646 UTF-8 encoding [RFC3629]
@@ -579,34 +587,32 @@ string    service name in US-ASCII
 string    method name "u2f"
 string    origin
 </pre>
-<p id="rfc.section.6.p.4">The server replies with: </p>
+<p id="rfc.section.7.p.4">The server replies with: </p>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_REQUEST
 byte[16]  random value
 uint32    SignRequestsNumber N
 string[N] SignRequests (each as serialized JSON)
 </pre>
-<p id="rfc.section.6.p.5">The server MUST only send "SignRequest"s with an appId matched by <samp>origin</samp> according to the rules in <a href="#facetAndAppID">Section 3</a>.  The list may be empty if there is no such public key.  </p>
-<p id="rfc.section.6.p.6">The challenge in each SignRequest MUST be the SHA2-256 checksum of the concatentation of the <samp>random value</samp> and the session identifier.  </p>
-<p id="rfc.section.6.p.7">The client MUST ignore any SignRequest if the origin doesn't match the appId according to the rules in <a href="#facetAndAppID">Section 3</a> or the challenge isn't the expected value.  </p>
-<p id="rfc.section.6.p.8">The client will try to get a response for one of the requests and returns the response with: </p>
+<p id="rfc.section.7.p.5">The server MUST only send "SignRequest"s with an appId matched by <samp>origin</samp> according to the rules in <a href="#facetAndAppID">Section 3</a>.  The list may be empty if there is no such public key.  </p>
+<p id="rfc.section.7.p.6">The challenge in each SignRequest MUST be the SHA2-256 checksum of the concatentation of the <samp>random value</samp> and the session identifier.  </p>
+<p id="rfc.section.7.p.7">The client MUST ignore any SignRequest if the origin doesn't match the appId according to the rules in <a href="#facetAndAppID">Section 3</a> or the challenge isn't the expected value.  </p>
+<p id="rfc.section.7.p.8">The client will try to get a response for one of the requests and returns the response with: </p>
 <pre>
 byte      SSH_MSG_USERAUTH_U2F_RESPONSE
 string    SignResponse (serialized JSON)
 </pre>
-<p id="rfc.section.6.p.9">The authentication is successful if the server successfully verifies the signature on the "SignResponse" (see section 4.2.2 of <a href="#U2F-JavaScript">[U2F-JavaScript]</a>) with a trusted public key.  </p>
+<p id="rfc.section.7.p.9">The authentication is successful if the server successfully verifies the signature on the "SignResponse" (see section 4.2.2 of <a href="#U2F-JavaScript">[U2F-JavaScript]</a>) with a trusted public key.  </p>
 <p/>
 
 <ul class="empty">
   <li>The server SHOULD also check whether the "origin" facetId matches the "appId" according to the rules in <a href="#facetAndAppID">Section 3</a>.  </li>
 </ul>
-<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#registration-possibilities-outside-the-scope-of-this-document" id="registration-possibilities-outside-the-scope-of-this-document">Registration possibilities outside the scope of this document</a></h1>
-<p id="rfc.section.7.p.1">The client doesn't actually need the server to create the public key.  </p>
-<p id="rfc.section.7.p.2">By using the registration protocol defined in this document a server might perform additional checks.  </p>
-<p id="rfc.section.7.p.3">A server might store registrations server side too (and might also verify the Attestation certificate against a chosen set).  When the user then tries to "activate" the registration through some other channel (web interface, user support, ...), the server can check whether the registration was done using the protocol defined in this document.  </p>
-<p id="rfc.section.7.p.4">Also Trust on First Registration can be implemented on the server when users are migrated to Two Factor Authentication.  </p>
-<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#future-work" id="future-work">Future work</a></h1>
-<p id="rfc.section.8.p.1">The userauth types "u2f-register" and "u2f" are not bound to a specific key type.  It is recommended the key types used for U2F always start with "ssh-u2f-" to distinguish them from other key types, so they can be stored together with them in an "authorized_keys" file.  </p>
+<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#registration-possibilities-outside-the-scope-of-this-document" id="registration-possibilities-outside-the-scope-of-this-document">Registration possibilities outside the scope of this document</a></h1>
+<p id="rfc.section.8.p.1">The client doesn't actually need the server to create the public key.  </p>
+<p id="rfc.section.8.p.2">By using the registration protocol defined in this document a server might perform additional checks.  </p>
+<p id="rfc.section.8.p.3">A server might store registrations server side too (and might also verify the Attestation certificate against a chosen set).  When the user then tries to "activate" the registration through some other channel (web interface, user support, ...), the server can check whether the registration was done using the protocol defined in this document.  </p>
+<p id="rfc.section.8.p.4">Also Trust on First Registration can be implemented on the server when users are migrated to Two Factor Authentication.  </p>
 <h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a></h1>
 <p id="rfc.section.9.p.1">TBA </p>
 <h1 id="rfc.section.10"><a href="#rfc.section.10">10.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
@@ -627,9 +633,8 @@ SSH_MSG_USERAUTH_U2F_INIT               60
 SSH_MSG_USERAUTH_U2F_REQUEST            61
 SSH_MSG_USERAUTH_U2F_RESPONSE           62
 </pre>
-<h1 id="rfc.section.11.2"><a href="#rfc.section.11.2">11.2.</a> <a href="#public-key-algorithm-names" id="public-key-algorithm-names">Public Key Algorithm Names</a></h1>
-<p id="rfc.section.11.2.p.1">"ssh-u2f-*" public key algorithm names are to be reserved for the use with U2f, although they are not used in any of the traditional places where key algorithm names are used.  </p>
-<p id="rfc.section.11.2.p.2">That way U2F public keys can be stored with other keys in an "authorized_keys" file.  </p>
+<h1 id="rfc.section.11.2"><a href="#rfc.section.11.2">11.2.</a> <a href="#public-key-algorithm-name" id="public-key-algorithm-name">Public Key Algorithm Name</a></h1>
+<p id="rfc.section.11.2.p.1">The "ssh-u2f" public key algorithm is used for the key type described in section #key.  </p>
 <h1 id="rfc.references"><a href="#rfc.references">12.</a> References</h1>
 <h1 id="rfc.references.1"><a href="#rfc.references.1">12.1.</a> Normative References</h1>
 <table>
